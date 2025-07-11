@@ -1,12 +1,13 @@
 /*
-	heap
-	This question requires you to implement a binary heap function
+    heap
+    This question requires you to implement a binary heap function
 */
-// I AM NOT DONE
 
 use std::cmp::Ord;
 use std::default::Default;
+use std::fmt::Debug;
 
+#[derive(Clone, Debug)]
 pub struct Heap<T>
 where
     T: Default,
@@ -37,7 +38,21 @@ where
     }
 
     pub fn add(&mut self, value: T) {
-        //TODO
+        self.count += 1;
+        self.items.push(T::default());
+
+        let mut idx = self.count;
+        while idx != 1 {
+            let parent = self.parent_idx(idx);
+            if (self.comparator)(&value, &self.items[parent]) {
+                self.items.swap(idx, parent);
+                idx = parent;
+            } else {
+                break;
+            }
+        }
+
+        self.items[idx] = value;
     }
 
     fn parent_idx(&self, idx: usize) -> usize {
@@ -57,8 +72,20 @@ where
     }
 
     fn smallest_child_idx(&self, idx: usize) -> usize {
-        //TODO
-		0
+        let left = self.left_child_idx(idx);
+        let right = self.right_child_idx(idx);
+        if left <= self.count && right <= self.count {
+            if (self.comparator)(&self.items[left], &self.items[right]) {
+                return left;
+            } else {
+                return right;
+            }
+        } else if left <= self.count {
+            return left;
+        } else if right <= self.count {
+            return right;
+        }
+        return 0;
     }
 }
 
@@ -84,8 +111,27 @@ where
     type Item = T;
 
     fn next(&mut self) -> Option<T> {
-        //TODO
-		None
+        if self.count == 0 {
+            return None;
+        }
+
+        self.items.swap(1, self.count);
+        self.count -= 1;
+
+        let mut idx = 1;
+        loop {
+            let child = self.smallest_child_idx(idx);
+            if child == 0 {
+                break;
+            }
+            if (self.comparator)(&self.items[idx], &self.items[child]) {
+                break;
+            }
+            self.items.swap(child, idx);
+            idx = child;
+        }
+
+        self.items.pop()
     }
 }
 
@@ -129,6 +175,7 @@ mod tests {
         heap.add(2);
         heap.add(9);
         heap.add(11);
+        println!("{:?}", heap);
         assert_eq!(heap.len(), 4);
         assert_eq!(heap.next(), Some(2));
         assert_eq!(heap.next(), Some(4));
